@@ -2,7 +2,7 @@
 # Enumeration
 ## nmap
 
-```
+```shell
 nmap -sC -sV paper.htb                                                                     
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-17 20:45 EST
 Nmap scan report for paper.htb (10.129.136.31)
@@ -77,7 +77,7 @@ nothing interesing in cgi-bin at the moment
 ## Check the website
 
 ### curl
-```
+```shell
 curl -I http://paper.htb
 HTTP/1.1 403 Forbidden
 Date: Sat, 18 Feb 2023 01:59:16 GMT
@@ -149,7 +149,7 @@ Seems like there is a vuln we can exploit.
 has php
 
 #### feroxbuster again
-```
+```shell
 feroxbuster -u http://office.paper -x php
 301      GET        7l       20w      240c http://office.paper/wp-includes => http://office.paper/wp-includes/
 301      GET        7l       20w      239c http://office.paper/wp-content => http://office.paper/wp-content/
@@ -172,7 +172,7 @@ Login form and I could not find anything so interesiting.
 
 ## WP-scan
 
-```
+```shell
 wpscan --url http://office.paper --api-token <your token>
 [+] URL: http://office.paper/ [10.129.136.31]
 [+] Started: Fri Feb 17 21:22:08 2023
@@ -242,7 +242,7 @@ Interesting Finding(s):
 
 Wordpress version is 5.2.3
 
-```
+```shell
  | [!] Title: WordPress <= 5.2.3 - Unauthenticated View Private/Draft Posts
  |     Fixed in: 5.2.4
  |     References:
@@ -323,53 +323,37 @@ register as a user and then check general channel
 kellylikescupcakes Hello. I am Recyclops. A bot assigned by Dwight. I will have my revenge on earthlings, but before that, I have to help my Cool friend Dwight to respond to the annoying questions asked by his co-workers, so that he may use his valuable time to... well, not interact with his co-workers.
 
 -   Most frequently asked questions include:
-    
 -   - What time is it?
-    
 -   - What new files are in your sales directory?
-    
 -   - Why did the salesman crossed the road?
-    
 -   - What's the content of file x in your sales directory? etc.
-    
-
 -   Please note that I am a beta version and I still have some bugs to be fixed.
     
 
 -   How to use me ? :
-    
 -   1. Small Talk:
-    
 -   You can ask me how dwight's weekend was, or did he watched the game last night etc.
     
 -   eg: 'recyclops how was your weekend?' or 'recyclops did you watched the game last night?' or 'recyclops what kind of bear is the best?
     
 
 -   2. Joke:
-    
 -   You can ask me Why the salesman crossed the road.
-    
 -   eg: 'recyclops why did the salesman crossed the road?'
-    
 
 -   <=====The following two features are for those boneheads, who still don't know how to use scp. I'm Looking at you Kevin.=====>
-    
 
 -   For security reasons, the access is limited to the Sales folder.
     
 
 -   3. Files:
-    
 -   eg: 'recyclops get me the file test.txt', or 'recyclops could you send me the file src/test.php' or just 'recyclops file test.txt'
     
 
 -   4. List:
-    
 -   You can ask me to list the files
-    
 
 -   5. Time:
-    
 -   You can ask me to what the time is
     
 -   eg: 'recyclops what time is it?' or just 'recyclops time'
