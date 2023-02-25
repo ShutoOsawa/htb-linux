@@ -64,7 +64,7 @@ Nmap done: 1 IP address (1 host up) scanned in 25.46 seconds
 
 port 443 friendzone.red somewhat interesting lets add it to etc/hosts
 
-## Gobuster
+## Gobuster http
 ```
 gobuster dir -u http://friendzone.htb/ --wordlist /usr/share/wordlis
 ===============================================================
@@ -87,6 +87,23 @@ Progress: 141570 / 141709 (99.90%)
 2023/02/24 22:03:47 Finished
 ===============================================================
                                     
+```
+
+
+## Gobuster https
+
+```
+gobuster dir -u https://friendzone.red/ --wordlist /usr/share/wordlists/dirbuster/directory-list-1.0.txt -k -t 150
+```
+with -k option we can skip certification 
+we would get something like this if we dont skip it.
+```
+Error: error on running gobuster: unable to connect to https://friendzone.red/: invalid certificate: x509: certificate has expired or is not yet valid: current time 2023-02-25T07:46:50-05:00 is after 2018-11-04T21:02:30Z
+```
+
+```
+/admin                (Status: 301) [Size: 318] [--> https://friendzone.red/admin/]
+/js                   (Status: 301) [Size: 315] [--> https://friendzone.red/js/]
 ```
 
 ## FTP port 21
@@ -112,6 +129,10 @@ In the source code
 ```
 WElMa3JQdG5vYTE2NzczMTE3NzUxNW9IR0ZlUkpp
 ```
+
+### /admin
+![[Pasted image 20230225215624.png]]
+
 
 ## Samba port 445
 
@@ -166,7 +187,6 @@ smb: \> ls
   ..                                  D        0  Tue Sep 13 10:56:24 2022
 
                 3545824 blocks of size 1024. 1622184 blocks available
-
 ```
 nothing
 
@@ -191,6 +211,16 @@ admin:WORKWORKHhallelujah@#
 ```
 
 ## Check domain
+### friendzone.htb
+```
+dig axfr friendzone.htb @10.129.209.64
+
+; <<>> DiG 9.18.11-2-Debian <<>> axfr friendzone.htb @10.129.209.64
+;; global options: +cmd
+; Transfer failed.
+```
+
+### friendzone.red
 ```
 dig axfr friendzone.red @10.129.88.74
 
@@ -212,23 +242,110 @@ friendzone.red.         604800  IN      SOA     localhost. root.localhost. 2 604
 
 `administrator1.friendzone.red, hr.friendzone.red, uploads.friendzone.red`
 
+### administrator1.friendzone.red
+```
+dig axfr administrator1.friendzone.red @10.129.209.64
+
+; <<>> DiG 9.18.11-2-Debian <<>> axfr administrator1.friendzone.red @10.129.209.64
+;; global options: +cmd
+; Transfer failed.
+```
+
+### hr.friendzone.red
+```
+dig axfr hr.friendzone.red @10.129.209.64
+
+; <<>> DiG 9.18.11-2-Debian <<>> axfr hr.friendzone.red @10.129.209.64
+;; global options: +cmd
+; Transfer failed.
+```
+
+### uploads.friendzone.red
+```
+dig axfr uploads.friendzone.red @10.129.209.64
+
+; <<>> DiG 9.18.11-2-Debian <<>> axfr uploads.friendzone.red @10.129.209.64
+;; global options: +cmd
+; Transfer failed.
+```
+
+### friendzoneportal.red
+
+```
+dig axfr friendzoneportal.red @10.129.209.64
+
+; <<>> DiG 9.18.11-2-Debian <<>> axfr friendzoneportal.red @10.129.209.64
+;; global options: +cmd
+friendzoneportal.red.   604800  IN      SOA     localhost. root.localhost. 2 604800 86400 2419200 604800
+friendzoneportal.red.   604800  IN      AAAA    ::1
+friendzoneportal.red.   604800  IN      NS      localhost.
+friendzoneportal.red.   604800  IN      A       127.0.0.1
+admin.friendzoneportal.red. 604800 IN   A       127.0.0.1
+files.friendzoneportal.red. 604800 IN   A       127.0.0.1
+imports.friendzoneportal.red. 604800 IN A       127.0.0.1
+vpn.friendzoneportal.red. 604800 IN     A       127.0.0.1
+friendzoneportal.red.   604800  IN      SOA     localhost. root.localhost. 2 604800 86400 2419200 604800
+;; Query time: 188 msec
+;; SERVER: 10.129.209.64#53(10.129.209.64) (TCP)
+;; WHEN: Sat Feb 25 07:20:44 EST 2023
+;; XFR size: 9 records (messages 1, bytes 309)
+```
+
 ## /etc/hosts
 
 ```
-10.129.88.74 friendzone.red,friendzoneportal.red,administrator1.friendzone.red,hr.friendzone.red,uploads.friendzone.red
+10.129.209.64 friendzone.htb friendzone.red friendzoneportal.red administrator1.friendzone.red hr.friendzone.red uploads.friendzone.red admin.friendzoneportal.red files.friendzoneportal.red imports.friendzoneportal.red vpn.friendzoneportal.red
 ```
 
+## Check other subdomains
 
-![[Pasted image 20230225124900.png]]
+### friendzoneportal.red
+![[Pasted image 20230225211811.png]]
 
+### administrator1.friendzone.red
+![[Pasted image 20230225211731.png]]
 
-## Trouble connecting
+#### try to login
+admin:WORKWORKHhallelujah@#
+![[Pasted image 20230225215810.png]]
 
-- Changed vpn
-- Restarted the box again
-- removed etc/host
-- added only friendzone.red
-- visited the `http://<machine ip>`
-- then visited the `http://friendzone.red`
-- firefox warning showed up and I allowed the website
-I dont know why it happened but I got stuck
+### dashboard.php
+![[Pasted image 20230225222346.png]]
+
+#### Default image
+```
+https://administrator1.friendzone.red/dashboard.php?image_id=a.jpg&pagename=timestamp
+```
+
+![[Pasted image 20230225222541.png]]
+Final Access timestamp is 1677335106
+
+#### gobuster
+
+```
+
+```
+
+try php as well
+```
+
+```
+### hr.friendzone.red
+![[Pasted image 20230225213527.png]]
+
+### uploads.friendzone.red
+![[Pasted image 20230225213648.png]]
+
+### admin.friendzoneportal.red 
+![[Pasted image 20230225214100.png]]
+
+#### try to login
+admin:WORKWORKHhallelujah@#
+![[Pasted image 20230225214341.png]]
+### files.friendzoneportal.red 
+404
+### imports.friendzoneportal.red 
+404
+### vpn.friendzoneportal.red
+404
+
